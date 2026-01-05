@@ -1,0 +1,89 @@
+services:
+  # Banco de Dados PostgreSQL
+  database:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    container_name: evelou-database
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-evelou}
+      POSTGRES_USER: ${POSTGRES_USER:-evelou}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-evelou123}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "3040:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - evelou-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-evelou}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: evelou-backend
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      BACKEND_PORT: 4000
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3042}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-evelou}:${POSTGRES_PASSWORD:-evelou123}@database:5432/${POSTGRES_DB:-evelou}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "3041:4000"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - evelou-network
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev
+    restart: unless-stopped
+
+  # Frontend React
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: evelou-frontend
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3041}
+      VITE_FRONTEND_PORT: 80
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "3042:80"
+    depends_on:
+      - backend
+    networks:
+      - evelou-network
+    restart: unless-stopped
+
+  # Mobile App (React Native - desenvolvimento)
+  # mobile:
+  #   build:
+  #     context: ./mobile
+  #     dockerfile: Dockerfile
+  #   container_name: evelou-mobile
+  #   ports:
+  #     - "8081:8081"
+  #   networks:
+  #     - evelou-network
+  #   restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  evelou-network:
+    driver: bridge
+
