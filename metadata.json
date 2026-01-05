@@ -1,0 +1,7 @@
+{
+  "name": "Evelou - Marketplace de Eventos",
+  "description": "Uma plataforma moderna e completa para venda de ingressos de eventos públicos e corporativos, com áreas dedicadas para compradores, organizadores e administradores.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
