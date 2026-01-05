@@ -24,6 +24,10 @@ evelou/
 ### 1. Configuração Inicial
 
 ```bash
+# Clonar o repositório
+git clone git@github.com:omayklourenco/Evelou.git
+cd Evelou
+
 # Copiar arquivo de exemplo de variáveis de ambiente
 cp .env.example .env
 
@@ -38,6 +42,9 @@ docker-compose up --build
 
 # Ou em modo detached (background)
 docker-compose up -d --build
+
+# Ou usar o script de inicialização
+./start.sh
 ```
 
 Os serviços estarão disponíveis em:
@@ -85,6 +92,21 @@ O banco de dados PostgreSQL roda via Docker. Para conectar:
 docker exec -it evelou-database psql -U evelou -d evelou
 ```
 
+## 👥 Usuários de Teste
+
+Os seguintes usuários estão pré-cadastrados no banco de dados:
+
+| Email | Senha | Role | Status |
+|-------|-------|------|--------|
+| buyer@evelou.com | 123456 | BUYER | Não verificado |
+| organizer@evelou.com | 123456 | ORGANIZER | KYC pendente |
+| admin@evelou.com | 123456 | ADMIN | Verificado |
+
+Para recriar os usuários:
+```bash
+docker-compose exec backend npm run seed:users
+```
+
 ## 📝 Variáveis de Ambiente
 
 Principais variáveis que podem ser configuradas no arquivo `.env`:
@@ -93,9 +115,9 @@ Principais variáveis que podem ser configuradas no arquivo `.env`:
 - `POSTGRES_DB`: Nome do banco de dados
 - `POSTGRES_USER`: Usuário do PostgreSQL
 - `POSTGRES_PASSWORD`: Senha do PostgreSQL
+- `POSTGRES_PORT`: Porta externa do banco (padrão: 3040)
 - `BACKEND_PORT`: Porta externa do backend (padrão: 3041)
 - `FRONTEND_PORT`: Porta externa do frontend (padrão: 3042)
-- `POSTGRES_PORT`: Porta externa do banco (padrão: 3040)
 - `VITE_API_URL`: URL da API para o frontend (padrão: http://localhost:3041)
 - `JWT_SECRET`: Chave secreta para JWT
 - `GEMINI_API_KEY`: Chave da API do Google Gemini
@@ -109,6 +131,7 @@ O projeto foi configurado para usar **BrowserRouter** ao invés de HashRouter, p
 - `/evento/:slug` - Detalhes do evento
 - `/login` - Login
 - `/cadastro` - Cadastro
+- `/meus-ingressos` - Meus ingressos (Comprador)
 - `/organizador/*` - Painel do organizador
 - `/admin/*` - Painel administrativo
 
@@ -148,17 +171,20 @@ docker-compose exec backend npm run migrate
 - `src/components/` - Componentes reutilizáveis
 - `src/stores/` - Estado global (Zustand)
 - `src/config/` - Configurações (API, etc)
+- `src/services/` - Serviços de API
 
 ### Backend (`/backend`)
 - `src/` - Código fonte
-- `src/routes/` - Rotas da API (a criar)
-- `src/controllers/` - Controllers (a criar)
-- `src/models/` - Modelos de dados (a criar)
-- `src/middleware/` - Middlewares (a criar)
+- `src/routes/` - Rotas da API
+- `src/models/` - Modelos de dados
+- `src/middleware/` - Middlewares (auth, error handling)
+- `src/database/` - Configuração do banco
+- `src/utils/` - Utilitários (JWT, etc)
+- `src/scripts/` - Scripts utilitários (seed, etc)
 
 ### Database (`/database`)
-- `init.sql` - Script de inicialização do banco
-- `migrations/` - Migrations (a criar)
+- `init.sql` - Script de inicialização do banco (com usuários de teste)
+- `Dockerfile` - Imagem do PostgreSQL
 
 ## 🔐 Segurança
 
@@ -177,3 +203,8 @@ Este projeto é privado.
 ## 🤝 Contribuindo
 
 Para contribuir com o projeto, siga o padrão de código existente e crie branches para novas features.
+
+## 🌿 Branches
+
+- `main` - Branch principal com a estrutura completa do projeto
+- `google-ai` - Branch com o código original do Google AI Studio
